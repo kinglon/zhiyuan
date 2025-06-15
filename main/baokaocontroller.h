@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QThread>
+#include <QTimer>
 
 class BaoKaoThread : public QThread
 {
@@ -20,6 +21,8 @@ private:
 signals:
     void printLog(QString log);
 
+    void timerPrintLog(bool start, QString log);
+
 public:
     bool m_success = false;
 };
@@ -35,6 +38,8 @@ public:
 private:
     void onThreadFinish();
 
+    void onTimerPrintLog(bool start, QString log);
+
 signals:
     void runFinish(bool success);
 
@@ -42,6 +47,8 @@ signals:
 
 private:
     BaoKaoThread* m_baoKaoThread = nullptr;
+
+    QTimer* m_logTimer = nullptr;
 };
 
 #endif // BAOKAOCONTROLLER_H

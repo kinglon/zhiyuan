@@ -36,7 +36,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>11</x>
@@ -94,9 +94,26 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
+        <widget class="QRadioButton" name="radioButtonNotWuHua">
+         <property name="text">
+          <string>非物化组合</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEditNotWuHuaScore">
+         <property name="text">
+          <string>1</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QRadioButton" name="radioButtonWuHua">
          <property name="text">
-          <string>物化组合位次</string>
+          <string>物化组合</string>
          </property>
          <property name="checked">
           <bool>true</bool>
@@ -125,23 +142,6 @@
        </item>
        <item>
         <widget class="QLineEdit" name="lineEditHuaXueScore"/>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <item>
-        <widget class="QRadioButton" name="radioButtonNotWuHua">
-         <property name="text">
-          <string>非物化组合位次</string>
-         </property>
-         <attribute name="buttonGroup">
-          <string notr="true">buttonGroup</string>
-         </attribute>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="lineEditNotWuHuaScore"/>
        </item>
       </layout>
      </item>

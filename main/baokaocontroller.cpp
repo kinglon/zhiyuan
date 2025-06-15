@@ -14,8 +14,8 @@ using namespace QXlsx;
 
 // 表格列名
 #define COLUMN_SCHOOL_NAME 2
-#define COLUMN_XUANKE 6
-#define COLUMN_SCORE_POS 7
+#define COLUMN_XUANKE 8
+#define COLUMN_SCORE_POS 14
 #define MAX_COLUMN COLUMN_SCORE_POS
 
 BaoKaoThread::BaoKaoThread(QObject *parent) : QThread(parent)
@@ -36,6 +36,8 @@ void BaoKaoThread::runInternal()
     emit printLog(QString::fromWCharArray(L"加载往年高考录取数据"));
     QString rawExcelFile = QString::fromStdWString(CImPath::GetConfPath());
     rawExcelFile += QString::fromWCharArray(L"高考录取数据.xlsx");
+
+    emit timerPrintLog(true, QString::fromWCharArray(L"加载中"));
     Document rawExcelDoc(rawExcelFile);
     if (!rawExcelDoc.load())
     {
@@ -45,7 +47,6 @@ void BaoKaoThread::runInternal()
 
     QVector<QVector<QString>> datas;
     CellRange range = rawExcelDoc.dimension();
-    qint64 lastReportTime = QDateTime::currentSecsSinceEpoch();
     for (int row=2; row <= range.lastRow(); row++)
     {
         QVector<QString> data;
@@ -65,20 +66,16 @@ void BaoKaoThread::runInternal()
             }
         }
 
-        if (data.length() < MAX_COLUMN || data[COLUMN_SCHOOL_NAME].isEmpty())
+        if (data.length() < MAX_COLUMN || data[COLUMN_SCHOOL_NAME-1].isEmpty())
         {
             break;
         }
 
         datas.append(data);
-
-        qint64 now = QDateTime::currentSecsSinceEpoch();
-        if (now - lastReportTime >= 5)
-        {
-            emit printLog(QString::fromWCharArray(L"加载中"));
-        }
     }
     qInfo("total %d", datas.length());
+
+    emit timerPrintLog(false, "");
 
     // 生成报考表格
     emit printLog(QString::fromWCharArray(L"生成报考表格"));
@@ -89,8 +86,7 @@ void BaoKaoThread::runInternal()
     const auto& filterSetting = SettingManager::getInstance()->m_filterSetting;
     qInfo("total score: %d, wu hua: %d, wu li score: %d, hua xue score: %d, not wu hua: %d, min: %d, max: %d",
             filterSetting.m_totalScorePos, filterSetting.m_isWuHua?1:0,
-            filterSetting.m_wuLiScorePos, filterSetting.m_huaXueScorePos,
-            filterSetting.m_notWuHuaScorePos, min, max);
+            filterSetting.m_wuLiScorePos, filterSetting.m_huaXueScorePos, min, max);
 
     QVector<QVector<QString>> filterDatas;
     QString xuanKeBuXian = QString::fromWCharArray(L"不限");
@@ -101,14 +97,14 @@ void BaoKaoThread::runInternal()
         const auto& data = datas[i];
 
         bool ok = false;
-        int pos = data[COLUMN_SCORE_POS].toInt(&ok);
+        int pos = data[COLUMN_SCORE_POS-1].toInt(&ok);
         if (!ok)
         {
-            qCritical("row %d, school name: %s, score pos is not valid", i+2, data[COLUMN_SCHOOL_NAME].toStdString().c_str());
+            qCritical("row %d, school name: %s, score pos is not valid", i+2, data[COLUMN_SCHOOL_NAME-1].toStdString().c_str());
             continue;
         }
 
-        QString xuanKe = data[COLUMN_XUANKE];
+        QString xuanKe = data[COLUMN_XUANKE-1];
         if (filterSetting.m_isWuHua)
         {
             if (xuanKe.contains(xuanKeBuXian)
@@ -161,6 +157,8 @@ void BaoKaoThread::runInternal()
         return;
     }
 
+    emit timerPrintLog(true, QString::fromWCharArray(L"保存中"));
+
     Document outputExcelDoc(destExcelFilePath);
     if (!outputExcelDoc.load())
     {
@@ -180,14 +178,13 @@ void BaoKaoThread::runInternal()
     }
     else
     {
-        personInfo = QString::fromWCharArray(L"姓名：%1 性别：%2 总分位次：%3 非物化总分位次：%4").arg(
+        personInfo = QString::fromWCharArray(L"姓名：%1 性别：%2 总分位次：%3").arg(
                             filterSetting.m_name, filterSetting.getSexString(),
-                            QString::number(filterSetting.m_totalScorePos),
-                            QString::number(filterSetting.m_notWuHuaScorePos));
+                            QString::number(filterSetting.m_totalScorePos));
     }
     outputExcelDoc.write(1, 1, personInfo);
 
-    // 写入报考信息
+    // 写入报考信息    
     for (int i=0; i<filterDatas.length(); i++)
     {
         int row = i+3;
@@ -196,7 +193,7 @@ void BaoKaoThread::runInternal()
             int column = j+1;
             outputExcelDoc.write(row, column, filterDatas[i][j]);
         }
-    }
+    }    
 
     if (!outputExcelDoc.save())
     {
@@ -204,7 +201,10 @@ void BaoKaoThread::runInternal()
         return;
     }
 
+    emit timerPrintLog(false, "");
     emit printLog(QString::fromWCharArray(L"报考表格保存到：%1，点击\"打开报考表格目录\"按钮进行查看").arg(destExcelFilePath));
+
+    m_success = true;
 }
 
 void BaoKaoThread::getScorePosRange(int& min, int& max)
@@ -244,14 +244,41 @@ void BaoKaoController::run()
 {
     m_baoKaoThread = new BaoKaoThread();
     connect(m_baoKaoThread, &BaoKaoThread::printLog, this, &BaoKaoController::printLog);
+    connect(m_baoKaoThread, &BaoKaoThread::timerPrintLog, this, &BaoKaoController::onTimerPrintLog);
     connect(m_baoKaoThread, &BaoKaoThread::finished, this, &BaoKaoController::onThreadFinish);
     m_baoKaoThread->start();
 }
 
 void BaoKaoController::onThreadFinish()
 {
+    if (m_logTimer)
+    {
+        m_logTimer->stop();
+        m_logTimer->deleteLater();
+        m_logTimer = nullptr;
+    }
+
     bool success = m_baoKaoThread->m_success;
     m_baoKaoThread->deleteLater();
     m_baoKaoThread = nullptr;
     emit runFinish(success);
+}
+
+void BaoKaoController::onTimerPrintLog(bool start, QString log)
+{
+    if (m_logTimer)
+    {
+        m_logTimer->stop();
+        m_logTimer->deleteLater();
+        m_logTimer = nullptr;
+    }
+
+    if (start)
+    {
+        m_logTimer = new QTimer(this);
+        connect(m_logTimer, &QTimer::timeout, [this, log]() {
+            emit printLog(log);
+        });
+        m_logTimer->start(5000);
+    }
 }

@@ -29,9 +29,11 @@ void MainWindow::initCtrls()
     ui->comboBoxSex->addItem(QString::fromWCharArray(L"女"));
     ui->comboBoxSex->setCurrentIndex(0);
 
+    ui->lineEditNotWuHuaScore->setVisible(false);
+
     connect(ui->pushButtonBaoKao, &QPushButton::clicked, this, &MainWindow::onBaoKaoButtonClicked);
     connect(ui->pushButtonOpenExcelPath, &QPushButton::clicked, [](){
-        QDesktopServices::openUrl(QUrl(SettingManager::getInstance()->m_excelSavedPath));
+        QDesktopServices::openUrl(QUrl::fromLocalFile(SettingManager::getInstance()->m_excelSavedPath));
     });
 }
 
@@ -66,7 +68,7 @@ void MainWindow::onBaoKaoButtonClicked()
         UiUtil::showTip(QString::fromWCharArray(L"请输入姓名"));
         return;
     }
-    filterSetting.m_sex = ui->comboBoxSex->currentText()==0?FilterSetting::BOY:FilterSetting::GIRL;
+    filterSetting.m_sex = ui->comboBoxSex->currentIndex()==0?FilterSetting::BOY:FilterSetting::GIRL;
 
     bool ok = false;
     filterSetting.m_totalScorePos = ui->lineEditTotalScore->text().toInt(&ok);
