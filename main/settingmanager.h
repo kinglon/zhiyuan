@@ -50,6 +50,20 @@ public:
     }
 };
 
+// 物化分段排名设置
+class WuHuaRankSetting
+{
+public:
+    // 排名开始
+    int m_rankBegin = 0;
+
+    // 排名结束
+    int m_rankEnd = 0;
+
+    // 提升排名数
+    int m_subtractRank = 0;
+};
+
 class SettingManager
 {
 protected:
@@ -61,6 +75,8 @@ public:
 private:
     void load();
 
+    void loadWuHuaRankSetting();
+
 public:
     int m_logLevel = 2;  // info
 
@@ -68,4 +84,6 @@ public:
 
     // 表格存储路径，尾部有斜杆
     QString m_excelSavedPath;
+
+    QVector<WuHuaRankSetting> m_wuHuaRankSettings;
 };

@@ -84,7 +84,7 @@ void BaoKaoThread::runInternal()
     int max = 0;
     getScorePosRange(min, max);
     const auto& filterSetting = SettingManager::getInstance()->m_filterSetting;
-    qInfo("total score: %d, wu hua: %d, wu li score: %d, hua xue score: %d, not wu hua: %d, min: %d, max: %d",
+    qInfo("total score: %d, wu hua: %d, wu li score: %d, hua xue score: %d, min: %d, max: %d",
             filterSetting.m_totalScorePos, filterSetting.m_isWuHua?1:0,
             filterSetting.m_wuLiScorePos, filterSetting.m_huaXueScorePos, min, max);
 
@@ -170,7 +170,7 @@ void BaoKaoThread::runInternal()
     QString personInfo;
     if (filterSetting.m_isWuHua)
     {
-        personInfo = QString::fromWCharArray(L"姓名：%1 性别：%2 总分位次：%3 物理总分位次：%4 化学总分位次：%5").arg(
+        personInfo = QString::fromWCharArray(L"姓名：%1 性别：%2 总分位次：%3 物理位次：%4 化学位次：%5").arg(
                             filterSetting.m_name, filterSetting.getSexString(),
                             QString::number(filterSetting.m_totalScorePos),
                             QString::number(filterSetting.m_wuLiScorePos),
@@ -216,7 +216,19 @@ void BaoKaoThread::getScorePosRange(int& min, int& max)
                 || filterSetting.m_huaXueScorePos < filterSetting.m_totalScorePos)
         {
             max = filterSetting.m_totalScorePos + 25000;
-            min = qMax(filterSetting.m_wuLiScorePos, filterSetting.m_huaXueScorePos)-10000;
+
+            int currentRank = qMax(filterSetting.m_wuLiScorePos, filterSetting.m_huaXueScorePos);
+            int subtractRank = 0;
+            for (const auto& rankSetting : SettingManager::getInstance()->m_wuHuaRankSettings)
+            {
+                if (currentRank >= rankSetting.m_rankBegin && currentRank <= rankSetting.m_rankEnd)
+                {
+                    subtractRank = rankSetting.m_subtractRank;
+                    break;
+                }
+            }
+
+            min = currentRank-subtractRank;
             min = qMax(min, 1);
         }
         else
