@@ -20,7 +20,7 @@
       <x>1</x>
       <y>3</y>
       <width>522</width>
-      <height>174</height>
+      <height>182</height>
      </rect>
     </property>
     <property name="autoFillBackground">
@@ -30,7 +30,7 @@
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap resource="qrc.qrc">:/res/logo.png</pixmap>
+     <pixmap resource="qrc.qrc">:/res/head.jpg</pixmap>
     </property>
     <property name="scaledContents">
      <bool>true</bool>
@@ -40,27 +40,12 @@
     <property name="geometry">
      <rect>
       <x>11</x>
-      <y>185</y>
+      <y>195</y>
       <width>485</width>
-      <height>341</height>
+      <height>331</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QLabel" name="label_7">
-       <property name="font">
-        <font>
-         <pointsize>14</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>2025年高考志愿填报集训营</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
