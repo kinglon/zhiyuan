@@ -92,6 +92,7 @@ void BaoKaoThread::runInternal()
     QString xuanKeBuXian = QString::fromWCharArray(L"不限");
     QString xuanKeWuLi = QString::fromWCharArray(L"物理");
     QString xuanKeHuaXue = QString::fromWCharArray(L"化学");
+    QString xuanKeWuLiHuaXue = QString::fromWCharArray(L"物理和化学");
     for (int i=0; i<datas.length(); i++)
     {
         const auto& data = datas[i];
@@ -105,11 +106,15 @@ void BaoKaoThread::runInternal()
         }
 
         QString xuanKe = data[COLUMN_XUANKE-1];
+        bool isWuHua = false;
+        if (xuanKe.contains(xuanKeBuXian) || xuanKe == xuanKeWuLiHuaXue)
+        {
+            isWuHua = true;
+        }
+
         if (filterSetting.m_isWuHua)
         {
-            if (xuanKe.contains(xuanKeBuXian)
-                    || xuanKe.contains(xuanKeWuLi)
-                    || xuanKe.contains(xuanKeHuaXue))
+            if (isWuHua)
             {
                 if (pos >= min && pos <= max)
                 {
@@ -119,8 +124,7 @@ void BaoKaoThread::runInternal()
         }
         else
         {
-            if (xuanKe.contains(xuanKeBuXian)
-                    || (!xuanKe.contains(xuanKeWuLi) && !xuanKe.contains(xuanKeHuaXue)))
+            if (!isWuHua)
             {
                 if (pos >= min && pos <= max)
                 {
